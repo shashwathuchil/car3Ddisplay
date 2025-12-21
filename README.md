@@ -1,70 +1,149 @@
-# Getting Started with Create React App
+# 3D Model Viewer - Car Display
+
+A production-ready React application for displaying and interacting with 3D models using Three.js. Features a futuristic combat jet with dynamic textures, animations, and interactive controls.
+
+## Features
+
+- **3D Model Rendering**: FBX model loading with full material and texture support
+- **Interactive Controls**: Mouse-based rotation, panning, and zooming
+- **Dynamic Textures**: Real-time texture switching with 4 available options
+- **Animations**: Support for embedded FBX animations with playback controls
+- **Auto-Rotation**: Toggle automatic model rotation
+- **Responsive Design**: Adapts to different screen sizes
+- **Production-Ready**: Optimized code with custom hooks and component architecture
+
+## Tech Stack
+
+- **React 19** - UI framework
+- **Three.js** - 3D graphics library
+- **React Hooks** - State management and lifecycle
+- **PropTypes** - Runtime type checking
+- **Create React App** - Build tooling
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── Controls.jsx    # Animation and rotation controls
+│   ├── TextureSelector.jsx
+│   ├── ZoomControls.jsx
+│   └── LoadingOverlay.jsx
+├── hooks/              # Custom React hooks
+│   ├── useThreeScene.js    # Three.js scene setup
+│   └── useFBXLoader.js     # FBX model loading
+├── constants.js        # Configuration constants
+├── App.js             # Main application component
+└── App.css            # Styles
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v20 or higher recommended)
+- npm (v10 or higher)
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd car3Ddisplay
+```
+
+2. Install dependencies
+```bash
+npm install
+```
+
+3. Start the development server
+```bash
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+## Usage
+
+### Mouse Controls
+
+- **Left-click + drag**: Rotate the model
+- **Right-click + drag**: Pan the camera
+- **Scroll wheel**: Zoom in/out
+- **Two-finger drag** (trackpad): Pan
+
+### UI Controls
+
+- **Texture Selector** (top-left): Switch between different aircraft textures
+- **Auto Rotate** (top-right): Toggle automatic rotation
+- **Animation Controls** (top-right): Play embedded FBX animations
+- **Zoom Buttons** (bottom-right): Precise zoom control
+
+## Configuration
+
+Edit `src/constants.js` to customize:
+
+- Camera settings (FOV, position, zoom limits)
+- Lighting configuration (ambient, directional, point lights)
+- Scene settings (background color, model path, textures)
+- Control settings (damping, sensitivity)
+
+## Building for Production
+
+```bash
+npm run build
+```
+
+Creates an optimized production build in the `build` folder.
+
+## Key Features Implementation
+
+### Custom Hooks
+
+- **useThreeScene**: Manages Three.js scene, camera, renderer, and lighting
+- **useFBXLoader**: Handles FBX model loading with error handling and material setup
+
+### Performance Optimizations
+
+- React.memo for component optimization
+- useCallback for event handler memoization
+- Proper cleanup of Three.js resources
+- Prevention of duplicate renders (React StrictMode compatible)
+
+### Accessibility
+
+- ARIA labels on all interactive elements
+- Keyboard-friendly controls
+- Loading and error states with proper announcements
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Troubleshooting
+
+### Model not visible
+- Ensure FBX file is in `public/assets/futuristic_combat_jet/`
+- Check browser console for loading errors
+- Verify model scale and position in constants.js
+
+### Textures not loading
+- Confirm texture files are in `public/assets/futuristic_combat_jet/textures/`
+- Check file names match exactly (case-sensitive)
+
+### Performance issues
+- Reduce model complexity or texture resolution
+- Disable shadows in constants.js
+- Lower renderer pixel ratio
+
+## License
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## Author
 
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Shashwath Uchil
