@@ -1,8 +1,7 @@
 import './App.css';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 function App() {
@@ -10,12 +9,16 @@ function App() {
   const cameraRef = useRef(null);
   const modelRef = useRef(null);
   const animationRef = useRef({ rotate: false });
+  const mixerRef = useRef(null);
+  const clockRef = useRef(new THREE.Clock());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTexture, setSelectedTexture] = useState('Aircraft C.jpg');
   const [animations, setAnimations] = useState({
     rotate: false
   });
+  const [fbxAnimations, setFbxAnimations] = useState([]);
+  const [activeAnimation, setActiveAnimation] = useState(null);
 
   const textures = [
     { name: 'Aircraft C', file: 'Aircraft C.jpg' },
@@ -42,6 +45,28 @@ function App() {
       [animationType]: !prev[animationType]
     }));
     animationRef.current[animationType] = !animationRef.current[animationType];
+  };
+
+  const playFBXAnimation = (animationName) => {
+    if (mixerRef.current && fbxAnimations.length > 0) {
+      const clip = fbxAnimations.find(anim => anim.name === animationName);
+      if (clip) {
+        mixerRef.current.stopAllAction();
+        const action = mixerRef.current.clipAction(clip);
+        action.reset();
+        action.play();
+        setActiveAnimation(animationName);
+        console.log('Playing animation:', animationName);
+      }
+    }
+  };
+
+  const stopAllAnimations = () => {
+    if (mixerRef.current) {
+      mixerRef.current.stopAllAction();
+      setActiveAnimation(null);
+      console.log('Stopped all animations');
+    }
   };
 
   const handleTextureChange = (textureFile) => {
@@ -86,7 +111,7 @@ function App() {
       0.1,
       1000
     );
-    camera.position.set(0, 5, 10);
+    camera.position.set(0, 8, 20);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -114,66 +139,128 @@ function App() {
     pointLight.position.set(0, 10, 0);
     scene.add(pointLight);
 
-    const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
-    scene.add(gridHelper);
-
-    const axesHelper = new THREE.AxesHelper(5);
-    scene.add(axesHelper);
 
     console.log('Starting to load 3D model...');
     
-    const mtlLoader = new MTLLoader();
-    mtlLoader.setPath('/assets/futuristic_combat_jet/');
-    mtlLoader.load(
-      'Futuristic combat jet.mtl',
-      (materials) => {
-        materials.preload();
-        console.log('Materials loaded successfully');
+    const fbxLoader = new FBXLoader();
+    fbxLoader.load(
+      '/assets/futuristic_combat_jet/Futuristic combat jet.fbx',
+      (fbx) => {
+        console.log('FBX loaded successfully!', fbx);
         
-        const objLoader = new OBJLoader();
-        objLoader.setMaterials(materials);
-        objLoader.setPath('/assets/futuristic_combat_jet/');
+        if (fbx.animations && fbx.animations.length > 0) {
+          console.log(`Found ${fbx.animations.length} animations:`);
+          fbx.animations.forEach((clip, index) => {
+            console.log(`  ${index + 1}. ${clip.name} (duration: ${clip.duration.toFixed(2)}s)`);
+          });
+          setFbxAnimations(fbx.animations);
+          
+          mixerRef.current = new THREE.AnimationMixer(fbx);
+          console.log('Animation mixer created');
+        } else {
+          console.log('No animations found in FBX file');
+        }
         
-        objLoader.load(
-          'Futuristic combat jet.obj',
-          (obj) => {
-            console.log('OBJ loaded successfully!', obj);
-            obj.scale.set(0.5, 0.5, 0.5);
-            obj.position.set(0, 0, 0);
+        let meshCount = 0;
+        let materialCount = 0;
+        
+        fbx.traverse((child) => {
+          console.log('Child:', child.type, child.name);
+          if (child.isMesh) {
+            meshCount++;
+            console.log('Mesh found:', child.name, 'Geometry:', child.geometry, 'Material:', child.material);
             
-            obj.traverse((child) => {
-              if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-                if (child.material) {
+            if (child.material) {
+              materialCount++;
+              if (Array.isArray(child.material)) {
+                child.material.forEach(mat => {
+                  mat.side = THREE.DoubleSide;
+                  mat.wireframe = false;
+                  mat.visible = true;
+                  mat.opacity = 1;
+                  mat.transparent = false;
+                  if (!mat.color) {
+                    mat.color = new THREE.Color(0x888888);
+                  }
+                  mat.needsUpdate = true;
+                });
+              } else {
+                child.material.side = THREE.DoubleSide;
+                child.material.wireframe = false;
+                child.material.visible = true;
+                child.material.opacity = 1;
+                child.material.transparent = false;
+                if (!child.material.color) {
+                  child.material.color = new THREE.Color(0x888888);
+                }
+                child.material.needsUpdate = true;
+              }
+            } else {
+              child.material = new THREE.MeshPhongMaterial({
+                color: 0x888888,
+                side: THREE.DoubleSide
+              });
+            }
+            child.castShadow = true;
+            child.receiveShadow = true;
+            child.visible = true;
+          }
+        });
+        
+        console.log(`Found ${meshCount} meshes with ${materialCount} materials`);
+        
+        const box = new THREE.Box3().setFromObject(fbx);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        
+        console.log('Model size:', size);
+        console.log('Model center:', center);
+        
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const scale = 15 / maxDim;
+        fbx.scale.set(scale, scale, scale);
+        
+        fbx.position.sub(center.multiplyScalar(scale));
+        fbx.position.y = 0;
+        
+        scene.add(fbx);
+        modelRef.current = fbx;
+        
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load(
+          '/assets/futuristic_combat_jet/textures/Aircraft C.jpg',
+          (texture) => {
+            console.log('Default texture (Aircraft C) loaded');
+            fbx.traverse((child) => {
+              if (child.isMesh && child.material) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach((mat) => {
+                    mat.map = texture;
+                    mat.needsUpdate = true;
+                  });
+                } else {
+                  child.material.map = texture;
                   child.material.needsUpdate = true;
                 }
               }
             });
-            
-            scene.add(obj);
-            modelRef.current = obj;
-            setLoading(false);
-            console.log('Model added to scene');
           },
-          (xhr) => {
-            const percentComplete = (xhr.loaded / xhr.total) * 100;
-            console.log('OBJ: ' + percentComplete.toFixed(2) + '% loaded');
-          },
+          undefined,
           (error) => {
-            console.error('Error loading OBJ:', error);
-            setError('Failed to load 3D model: ' + error.message);
-            setLoading(false);
+            console.error('Error loading default texture:', error);
           }
         );
+        
+        setLoading(false);
+        console.log('Model added to scene with scale:', scale);
       },
       (xhr) => {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
-        console.log('MTL: ' + percentComplete.toFixed(2) + '% loaded');
+        console.log('FBX: ' + percentComplete.toFixed(2) + '% loaded');
       },
       (error) => {
-        console.error('Error loading MTL:', error);
-        setError('Failed to load materials: ' + error.message);
+        console.error('Error loading FBX:', error);
+        setError('Failed to load 3D model: ' + error.message);
         setLoading(false);
       }
     );
@@ -181,6 +268,11 @@ function App() {
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
+      
+      if (mixerRef.current) {
+        const delta = clockRef.current.getDelta();
+        mixerRef.current.update(delta);
+      }
       
       if (modelRef.current && animationRef.current.rotate) {
         modelRef.current.rotation.y += 0.01;
@@ -284,7 +376,12 @@ function App() {
         position: 'absolute',
         top: '30px',
         right: '30px',
-        zIndex: 1000
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        zIndex: 1000,
+        maxHeight: '80vh',
+        overflowY: 'auto'
       }}>
         <button
           onClick={() => toggleAnimation('rotate')}
@@ -298,13 +395,72 @@ function App() {
             cursor: 'pointer',
             fontWeight: 'bold',
             transition: 'all 0.3s ease',
-            minWidth: '120px'
+            minWidth: '150px'
           }}
           onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
           onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
         >
           {animations.rotate ? '⏸ Stop Rotate' : '🔄 Auto Rotate'}
         </button>
+        
+        {fbxAnimations.length > 0 && (
+          <>
+            <div style={{
+              color: '#fff',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              marginTop: '10px',
+              padding: '5px',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              borderRadius: '3px',
+              textAlign: 'center'
+            }}>
+              FBX Animations ({fbxAnimations.length})
+            </div>
+            {fbxAnimations.map((clip, index) => (
+              <button
+                key={index}
+                onClick={() => playFBXAnimation(clip.name)}
+                style={{
+                  padding: '10px 15px',
+                  fontSize: '13px',
+                  borderRadius: '5px',
+                  border: '2px solid #fff',
+                  backgroundColor: activeAnimation === clip.name ? 'rgba(0, 200, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  transition: 'all 0.3s ease',
+                  minWidth: '150px',
+                  textAlign: 'left'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+              >
+                ▶ {clip.name}
+              </button>
+            ))}
+            <button
+              onClick={stopAllAnimations}
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px',
+                borderRadius: '5px',
+                border: '2px solid #ff4444',
+                backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                color: '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease',
+                minWidth: '150px'
+              }}
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              ⏹ Stop All
+            </button>
+          </>
+        )}
       </div>
       <div style={{
         position: 'absolute',
