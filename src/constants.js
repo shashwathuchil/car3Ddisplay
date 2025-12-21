@@ -23,8 +23,8 @@ export const LIGHTING_CONFIG = {
 
 export const SCENE_CONFIG = {
   background: 0x1a1a1a,
-  modelPath: '/assets/futuristic_combat_jet/Futuristic combat jet.fbx',
-  texturePath: '/assets/futuristic_combat_jet/textures/',
+  modelPath: `${process.env.PUBLIC_URL}/assets/futuristic_combat_jet/Futuristic combat jet.fbx`,
+  texturePath: `${process.env.PUBLIC_URL}/assets/futuristic_combat_jet/textures/`,
   defaultTexture: 'Aircraft C.jpg',
   modelScale: 15
 };

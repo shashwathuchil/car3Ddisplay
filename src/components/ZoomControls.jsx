@@ -1,21 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const buttonStyle = {
-  width: '50px',
-  height: '50px',
-  borderRadius: '50%',
-  border: '2px solid #fff',
-  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  color: '#fff',
-  fontSize: '24px',
-  cursor: 'pointer',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  transition: 'all 0.3s ease'
-};
-
 export const ZoomControls = React.memo(({ onZoomIn, onZoomOut }) => {
   const isMobile = window.innerWidth <= 768;
   

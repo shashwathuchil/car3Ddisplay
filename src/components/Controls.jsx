@@ -1,18 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const buttonStyle = {
-  padding: '10px 20px',
-  fontSize: '14px',
-  borderRadius: '5px',
-  border: '2px solid #fff',
-  color: '#fff',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  transition: 'all 0.3s ease',
-  minWidth: '150px'
-};
-
 export const Controls = React.memo(({ 
   animations, 
   fbxAnimations, 
