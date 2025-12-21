@@ -13,7 +13,7 @@ const buttonStyle = {
   minWidth: '150px'
 };
 
-export const Controls = ({ 
+export const Controls = React.memo(({ 
   animations, 
   fbxAnimations, 
   activeAnimation, 
@@ -21,27 +21,40 @@ export const Controls = ({
   onPlayAnimation, 
   onStopAll 
 }) => {
+  const isMobile = window.innerWidth <= 768;
+  
   return (
     <div style={{
       position: 'absolute',
-      top: '30px',
-      right: '30px',
+      top: isMobile ? '10px' : '30px',
+      right: isMobile ? '10px' : '30px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '10px',
+      gap: isMobile ? '6px' : '10px',
       zIndex: 1000,
-      maxHeight: '80vh',
-      overflowY: 'auto'
+      maxHeight: isMobile ? '40vh' : '80vh',
+      overflowY: 'auto',
+      backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
+      padding: isMobile ? '5px' : '0',
+      borderRadius: isMobile ? '8px' : '0'
     }}>
       <button
         onClick={onToggleRotate}
         style={{
-          ...buttonStyle,
-          backgroundColor: animations.rotate ? 'rgba(0, 200, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)'
+          padding: isMobile ? '6px 10px' : '10px 20px',
+          fontSize: isMobile ? '11px' : '14px',
+          borderRadius: '5px',
+          border: isMobile ? '1px solid #fff' : '2px solid #fff',
+          backgroundColor: animations.rotate ? 'rgba(0, 200, 0, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+          color: '#fff',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          transition: 'all 0.3s ease',
+          minWidth: isMobile ? '100px' : '150px'
         }}
-        onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-        aria-label={animations.rotate ? 'Stop rotation' : 'Start rotation'}
+        onMouseEnter={(e) => !isMobile && (e.target.style.transform = 'scale(1.05)')}
+        onMouseLeave={(e) => !isMobile && (e.target.style.transform = 'scale(1)')}
+        aria-label={animations.rotate ? 'Stop rotation' : 'Start auto rotation'}
       >
         {animations.rotate ? '⏸ Stop Rotate' : '🔄 Auto Rotate'}
       </button>
@@ -50,11 +63,11 @@ export const Controls = ({
         <>
           <div style={{
             color: '#fff',
-            fontSize: '12px',
+            fontSize: isMobile ? '9px' : '12px',
             fontWeight: 'bold',
-            marginTop: '10px',
-            padding: '5px',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            marginTop: isMobile ? '3px' : '10px',
+            padding: isMobile ? '2px' : '5px',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
             borderRadius: '3px',
             textAlign: 'center'
           }}>
@@ -62,17 +75,23 @@ export const Controls = ({
           </div>
           {fbxAnimations.map((clip, index) => (
             <button
-              key={`${clip.name}-${index}`}
+              key={index}
               onClick={() => onPlayAnimation(clip.name)}
               style={{
-                ...buttonStyle,
-                backgroundColor: activeAnimation === clip.name ? 'rgba(0, 200, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-                textAlign: 'left',
-                padding: '10px 15px',
-                fontSize: '13px'
+                padding: isMobile ? '5px 8px' : '10px 15px',
+                fontSize: isMobile ? '10px' : '13px',
+                borderRadius: '5px',
+                border: isMobile ? '1px solid #fff' : '2px solid #fff',
+                backgroundColor: activeAnimation === clip.name ? 'rgba(0, 200, 0, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                color: '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'all 0.3s ease',
+                minWidth: isMobile ? '100px' : '150px',
+                textAlign: 'left'
               }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+              onMouseEnter={(e) => !isMobile && (e.target.style.transform = 'scale(1.05)')}
+              onMouseLeave={(e) => !isMobile && (e.target.style.transform = 'scale(1)')}
               aria-label={`Play ${clip.name} animation`}
             >
               ▶ {clip.name}
@@ -81,12 +100,19 @@ export const Controls = ({
           <button
             onClick={onStopAll}
             style={{
-              ...buttonStyle,
-              border: '2px solid #ff4444',
-              backgroundColor: 'rgba(255, 0, 0, 0.7)'
+              padding: isMobile ? '6px 10px' : '10px 20px',
+              fontSize: isMobile ? '11px' : '14px',
+              borderRadius: '5px',
+              border: isMobile ? '1px solid #ff4444' : '2px solid #ff4444',
+              backgroundColor: 'rgba(255, 0, 0, 0.8)',
+              color: '#fff',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'all 0.3s ease',
+              minWidth: isMobile ? '100px' : '150px'
             }}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            onMouseEnter={(e) => !isMobile && (e.target.style.transform = 'scale(1.05)')}
+            onMouseLeave={(e) => !isMobile && (e.target.style.transform = 'scale(1)')}
             aria-label="Stop all animations"
           >
             ⏹ Stop All
@@ -95,7 +121,9 @@ export const Controls = ({
       )}
     </div>
   );
-};
+});
+
+Controls.displayName = 'Controls';
 
 Controls.propTypes = {
   animations: PropTypes.shape({
