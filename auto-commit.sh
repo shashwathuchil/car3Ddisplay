@@ -5,7 +5,7 @@
 # Example: ./auto-commit.sh /Users/shashwath/Documents/AnkrMiraSol/mira_pin_frontend
 
 REPO_PATH="${1:-$(pwd)}"
-INTERVAL=1800  # 30 minutes in seconds
+INTERVAL=600  # 10 minutes in seconds
 
 if [ ! -d "$REPO_PATH/.git" ]; then
   echo "Error: $REPO_PATH is not a git repository"
@@ -13,7 +13,7 @@ if [ ! -d "$REPO_PATH/.git" ]; then
 fi
 
 echo "Auto-commit started for: $REPO_PATH"
-echo "Interval: every 30 minutes. Press Ctrl+C to stop."
+echo "Interval: every 10 minutes. Press Ctrl+C to stop."
 
 while true; do
   cd "$REPO_PATH"
